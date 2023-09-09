@@ -1,12 +1,15 @@
 package ingram.andrew.newbpdmonitor;
 
-public class OpenCallData {
-    final String AGENCY;
-    final String SERVICE;
-    final String START_TIME;
-    final long ID;
-    final String NATURE;
-    final String ADDRESS;
+import java.util.ArrayList;
+import java.util.Map;
+
+public class OpenCallData implements CallData{
+    private final String AGENCY;
+    private final String SERVICE;
+    private final String START_TIME;
+    private final long ID;
+    private final String NATURE;
+    private final String ADDRESS;
 
     public OpenCallData(String agency, String service, String startTime, long id, String nature, String address) {
         this.AGENCY = agency;
@@ -29,5 +32,29 @@ public class OpenCallData {
 
         returnString = returnString + "}";
         return returnString;
+    }
+
+    @Override
+    public String getNature() {
+        return NATURE;
+    }
+
+    public static ArrayList<OpenCallData> parseDataMap(Map<?,?> dataMap) {
+        ArrayList<OpenCallData> returnArray = new ArrayList<>();
+        ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
+
+        for (Map<Object, Object> callDetailsMap : rows) {
+
+            String agency = (String) callDetailsMap.get("agency");
+            String service = (String) callDetailsMap.get("service");
+            String startTime = (String) callDetailsMap.get("starttime");
+            long id = Long.parseLong((String) callDetailsMap.get("id"));
+            String nature = (String) callDetailsMap.get("nature");
+            String address = (String) callDetailsMap.get("address");
+
+            returnArray.add(new OpenCallData(agency, service, startTime, id, nature, address));
+        }
+
+        return returnArray;
     }
 }

@@ -17,12 +17,32 @@ public class BPDMonitorController {
     private Button getClosedCallsButton;
 
     @FXML
-    protected void onTestButtonPressed() {
+    protected void onOpenCallsButtonPressed() {
         getOpenCallsButton.setDisable(true);
         getOpenCalls();
     }
 
+    @FXML
+    protected void onClosedCallsButtonPressed() {
+        getClosedCallsButton.setDisable(true);
+        getClosedCalls();
+    }
 
+
+    private void getClosedCalls() {
+        Thread downloadThread = new Thread(new ClosedCallsDownloadRunnable(this));
+        downloadThread.start();
+    }
+
+    public void gotClosedCalls(String jsonString) {
+        ArrayList<ClosedCallData> data = ClosedCallData.parseDataMap(GSON.fromJson(jsonString.toString(), Map.class));
+
+        for (ClosedCallData closedCallData : data) {
+            System.out.println(closedCallData);
+        }
+
+        getClosedCallsButton.setDisable(false);
+    }
 
     private void getOpenCalls() {
         Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
@@ -30,29 +50,12 @@ public class BPDMonitorController {
     }
 
     public void gotOpenCalls(String jsonString) {
-        ArrayList<?> data = parseOpenCallMap(GSON.fromJson(jsonString.toString(), Map.class));
-        System.out.println(data);
-        getOpenCallsButton.setDisable(false);
-    }
+        ArrayList<OpenCallData> data = OpenCallData.parseDataMap(GSON.fromJson(jsonString.toString(), Map.class));
 
-    // parses data map received from polling servers for open-calls
-    private ArrayList<OpenCallData> parseOpenCallMap(Map<?,?> dataMap) {
-
-        ArrayList<OpenCallData> returnArray = new ArrayList<>();
-        ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
-
-        for (Map<Object, Object> callDetailsMap : rows) {
-
-            String agency = (String) callDetailsMap.get("agency");
-            String service = (String) callDetailsMap.get("service");
-            String startTime = (String) callDetailsMap.get("starttime");
-            long id = Long.parseLong((String) callDetailsMap.get("id"));
-            String nature = (String) callDetailsMap.get("nature");
-            String address = (String) callDetailsMap.get("address");
-
-            returnArray.add(new OpenCallData(agency, service, startTime, id, nature, address));
+        for (OpenCallData openCallData : data) {
+            System.out.println(openCallData);
         }
 
-        return returnArray;
+        getOpenCallsButton.setDisable(false);
     }
 }
