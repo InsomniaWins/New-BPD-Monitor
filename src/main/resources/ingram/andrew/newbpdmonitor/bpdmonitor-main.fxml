@@ -8,8 +8,8 @@
    <top>
       <HBox prefHeight="100.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
          <children>
-            <Button fx:id="testButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#onTestButtonPressed" text="Get Open Calls" />
-            <Button mnemonicParsing="false" text="Get Closed Calls" />
+            <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#onTestButtonPressed" text="Get Open Calls" />
+            <Button fx:id="getClosedCallsButton" mnemonicParsing="false" text="Get Closed Calls" />
          </children>
       </HBox>
    </top>

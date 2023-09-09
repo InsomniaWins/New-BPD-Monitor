@@ -9,7 +9,7 @@ import java.io.IOException;
 public class BPDMonitor extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("test-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("bpdmonitor-main.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 480, 360);
         stage.setMinWidth(480);
         stage.setMinHeight(360);

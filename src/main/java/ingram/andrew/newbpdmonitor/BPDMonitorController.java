@@ -12,25 +12,30 @@ public class BPDMonitorController {
     private final ArrayList<Long> callsDisplayedList = new ArrayList<>();
 
     @FXML
-    private Button testButton;
+    private Button getOpenCallsButton;
+    @FXML
+    private Button getClosedCallsButton;
 
     @FXML
     protected void onTestButtonPressed() {
-        testButton.setDisable(true);
+        getOpenCallsButton.setDisable(true);
         getOpenCalls();
     }
+
+
 
     private void getOpenCalls() {
         Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
         downloadThread.start();
     }
 
-    public void gotOpenCallsJsonString(String jsonString) {
+    public void gotOpenCalls(String jsonString) {
         ArrayList<?> data = parseOpenCallMap(GSON.fromJson(jsonString.toString(), Map.class));
         System.out.println(data);
-        testButton.setDisable(false);
+        getOpenCallsButton.setDisable(false);
     }
 
+    // parses data map received from polling servers for open-calls
     private ArrayList<OpenCallData> parseOpenCallMap(Map<?,?> dataMap) {
 
         ArrayList<OpenCallData> returnArray = new ArrayList<>();

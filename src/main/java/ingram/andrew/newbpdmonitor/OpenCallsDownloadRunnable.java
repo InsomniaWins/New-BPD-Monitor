@@ -80,6 +80,6 @@ public class OpenCallsDownloadRunnable implements Runnable {
             jsonString.append(line);
         }
 
-        PROGRAM_CONTROLLER.gotOpenCallsJsonString(jsonString.toString());
+        PROGRAM_CONTROLLER.gotOpenCalls(jsonString.toString());
     }
 }
