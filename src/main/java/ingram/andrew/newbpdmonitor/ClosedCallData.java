@@ -63,4 +63,28 @@ public class ClosedCallData implements CallData{
 
         return returnArray;
     }
+
+    public String getAgency() {
+        return AGENCY;
+    }
+
+    public String getService() {
+        return SERVICE;
+    }
+
+    public String getStartTime() {
+        return START_TIME;
+    }
+
+    public String getEndTime() {
+        return END_TIME;
+    }
+
+    public long getID() {
+        return ID;
+    }
+
+    public String getAddress() {
+        return ADDRESS;
+    }
 }

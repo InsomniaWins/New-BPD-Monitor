@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class OpenCallData implements CallData{
+
     private final String AGENCY;
     private final String SERVICE;
     private final String START_TIME;
@@ -34,11 +35,6 @@ public class OpenCallData implements CallData{
         return returnString;
     }
 
-    @Override
-    public String getNature() {
-        return NATURE;
-    }
-
     public static ArrayList<OpenCallData> parseDataMap(Map<?,?> dataMap) {
         ArrayList<OpenCallData> returnArray = new ArrayList<>();
         ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
@@ -56,5 +52,29 @@ public class OpenCallData implements CallData{
         }
 
         return returnArray;
+    }
+
+    public String getAgency() {
+        return AGENCY;
+    }
+
+    public String getService() {
+        return SERVICE;
+    }
+
+    public String getStartTime() {
+        return START_TIME;
+    }
+
+    public long getID() {
+        return ID;
+    }
+
+    public String getNature() {
+        return NATURE;
+    }
+
+    public String getAddress() {
+        return ADDRESS;
     }
 }
