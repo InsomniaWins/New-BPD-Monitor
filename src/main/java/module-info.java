@@ -4,7 +4,7 @@ module ingram.andrew.newbpdmonitor {
 
     requires org.controlsfx.controls;
     requires com.google.gson;
-    requires org.apache.commons.io;
+    requires org.apache.poi.poi;
 
     opens ingram.andrew.newbpdmonitor to javafx.fxml;
     exports ingram.andrew.newbpdmonitor;

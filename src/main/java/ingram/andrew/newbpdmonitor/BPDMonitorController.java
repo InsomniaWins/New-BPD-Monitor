@@ -7,9 +7,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -35,21 +35,27 @@ public class BPDMonitorController {
     @FXML
     protected void onOpenCallsButtonPressed() {
         getOpenCallsButton.setDisable(true);
-        getOpenCalls();
+        downloadOpenCalls();
     }
 
     @FXML
     protected void onClosedCallsButtonPressed() {
         getClosedCallsButton.setDisable(true);
-        getClosedCalls();
+        downloadClosedCalls();
     }
 
     @FXML
     protected void onSaveClosedCallsButtonPressed() {
+        saveClosedCallsButton.setDisable(true);
+        Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
+        saveThread.start();
     }
 
+    public void savedClosedCalls() {
+        saveClosedCallsButton.setDisable(false);
+    }
 
-    private void getClosedCalls() {
+    private void downloadClosedCalls() {
         Thread downloadThread = new Thread(new ClosedCallsDownloadRunnable(this));
         downloadThread.start();
     }
@@ -77,7 +83,7 @@ public class BPDMonitorController {
         getClosedCallsButton.setDisable(false);
     }
 
-    private void getOpenCalls() {
+    private void downloadOpenCalls() {
         Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
         downloadThread.start();
     }
@@ -102,5 +108,9 @@ public class BPDMonitorController {
         }
 
         getOpenCallsButton.setDisable(false);
+    }
+
+    public ClosedCallData[] getClosedCalls() {
+        return CLOSED_CALLS.toArray(new ClosedCallData[]{});
     }
 }
