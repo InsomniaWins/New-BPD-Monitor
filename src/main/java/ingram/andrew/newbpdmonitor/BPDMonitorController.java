@@ -3,14 +3,21 @@ package ingram.andrew.newbpdmonitor;
 import com.google.gson.Gson;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import org.apache.poi.ss.usermodel.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class BPDMonitorController {
@@ -28,7 +35,8 @@ public class BPDMonitorController {
     private Button getClosedCallsButton;
     @FXML
     private TableView openCallsTable;
-
+    @FXML
+    private VBox searchTermsVBox;
     @FXML
     private TableView closedCallsTable;
 
@@ -49,6 +57,18 @@ public class BPDMonitorController {
         saveClosedCallsButton.setDisable(true);
         Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
         saveThread.start();
+    }
+
+    private void addSearchTermNode(String text) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
+            BorderPane searchTermNode = (BorderPane) fxmlLoader.load();
+            Label searchTermLabel = (Label) ((HBox) searchTermNode.getChildren().get(0)).getChildren().get(0);
+            searchTermLabel.setText(text);
+            searchTermsVBox.getChildren().add(searchTermNode);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void savedClosedCalls() {

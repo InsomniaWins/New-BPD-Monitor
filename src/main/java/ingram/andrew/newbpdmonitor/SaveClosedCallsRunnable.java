@@ -1,7 +1,6 @@
 package ingram.andrew.newbpdmonitor;
 
 import org.apache.poi.ss.usermodel.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,6 +12,7 @@ public class SaveClosedCallsRunnable implements Runnable{
     public SaveClosedCallsRunnable(BPDMonitorController controller) {
         this.PROGRAM_CONTROLLER = controller;
     }
+
     @Override
     public void run() {
         try {
@@ -25,7 +25,9 @@ public class SaveClosedCallsRunnable implements Runnable{
             ClosedCallData[] closedCalls = PROGRAM_CONTROLLER.getClosedCalls();
             for (int i = 0; i < closedCalls.length; i++) {
                 ClosedCallData closedCallData = closedCalls[i];
+
                 Row row = sheet.createRow(i);
+
                 Cell agencyCell = row.createCell(0);
                 Cell serviceCell = row.createCell(1);
                 Cell startTimeCell = row.createCell(2);
@@ -46,7 +48,7 @@ public class SaveClosedCallsRunnable implements Runnable{
             FileOutputStream outputStream = new FileOutputStream("Output.xlsx");
             workbook.write(outputStream);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
         PROGRAM_CONTROLLER.savedClosedCalls();

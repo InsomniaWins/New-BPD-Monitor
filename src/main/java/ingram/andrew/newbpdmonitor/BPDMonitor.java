@@ -11,8 +11,8 @@ public class BPDMonitor extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("bpdmonitor-main.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 480, 360);
-        stage.setMinWidth(480);
-        stage.setMinHeight(360);
+        stage.setMinWidth(650);
+        stage.setMinHeight(550);
         stage.setTitle("BPD Monitor");
         stage.setScene(scene);
         stage.show();
