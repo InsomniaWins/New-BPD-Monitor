@@ -9,6 +9,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class BPDMonitorController {
     private final Gson GSON = new Gson();
     private final ArrayList<ClosedCallData> CLOSED_CALLS = new ArrayList<>();
     private final ArrayList<OpenCallData> OPEN_CALLS = new ArrayList<>();
-    private final ArrayList<Long> callsDisplayedList = new ArrayList<>();
+    private final ArrayList<Long> HIDDEN_OPEN_CALLS = new ArrayList<>(); // list of open-calls that have been hidden from search results
 
     @FXML
     private Button saveClosedCallsButton;
@@ -35,6 +36,8 @@ public class BPDMonitorController {
     private Button addSearchTermButton;
     @FXML
     private TextField addSearchTermTextField;
+    @FXML
+    private Button hideSelectedCallButton;
     @FXML
     protected void onAddSearchTermTextFieldEntered() {
         tryToAddSearchTerm(addSearchTermTextField.getText());
@@ -72,8 +75,32 @@ public class BPDMonitorController {
     }
 
     @FXML
+    protected void onHideSelectedCallButtonPressed() {
+        hideSelectedCallButton.setDisable(true);
+
+        OpenCallData selectedOpenCallData = openCallsTable.getSelectionModel().getSelectedItem();
+        if (selectedOpenCallData == null) return;
+
+        HIDDEN_OPEN_CALLS.add(selectedOpenCallData.getID());
+
+        openCallsTable.getSelectionModel().select(null);
+        downloadOpenCalls();
+    }
+
+    @FXML
+    protected  void onOpenCallsTableClicked() {
+        OpenCallData selectedOpenCallData = openCallsTable.getSelectionModel().getSelectedItem();
+
+        if (selectedOpenCallData == null) {
+            hideSelectedCallButton.setDisable(true);
+            return;
+        }
+
+        hideSelectedCallButton.setDisable(false);
+    }
+
+    @FXML
     protected void onOpenCallsButtonPressed() {
-        getOpenCallsButton.setDisable(true);
         downloadOpenCalls();
     }
 
@@ -123,11 +150,13 @@ public class BPDMonitorController {
     }
 
     private void downloadOpenCalls() {
+        getOpenCallsButton.setDisable(true);
         Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
         downloadThread.start();
     }
 
     public void gotOpenCalls(String jsonString) {
+        // make sure table has the needed property value factories
         ObservableList<TableColumn<OpenCallData, ?>> columns = openCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {
             columns.get(0).setCellValueFactory(new PropertyValueFactory<>("agency"));
@@ -138,17 +167,43 @@ public class BPDMonitorController {
             columns.get(5).setCellValueFactory(new PropertyValueFactory<>("address"));
         }
 
+        // list to keep track of what hidden calls are no longer required to be tracked (list of hidden open calls that are now closed)
+        ArrayList<Long> hiddenCallsToFreeFromMemory = (ArrayList<Long>) HIDDEN_OPEN_CALLS.clone();
+
+        // clear open calls list and the table-view
         OPEN_CALLS.clear();
         openCallsTable.getItems().clear();
+
+        // get open calls
         ArrayList<OpenCallData> openCalls = OpenCallData.parseDataMap(GSON.fromJson(jsonString, Map.class));
         for (OpenCallData openCallData : openCalls) {
+
+            // if the current open call fits a search term
             if (SearchTerms.containsSearchTerm(openCallData)) {
+
+                // if current open call is within HIDDEN_OPEN_CALLS list
+                if (HIDDEN_OPEN_CALLS.contains(openCallData.getID())) {
+
+                    // make sure the program remembers this case is hidden and to not free the case-id from the hidden list
+                    hiddenCallsToFreeFromMemory.remove(openCallData.getID());
+
+                    // don't add open call to table-view or OPEN_CALLS list
+                    continue;
+                }
+
+                // add open call to OPEN_CALLS list and table-view
                 OPEN_CALLS.add(openCallData);
                 openCallsTable.getItems().add(openCallData);
             }
         }
 
+        // enable "Get Open Calls" button
         getOpenCallsButton.setDisable(false);
+
+        // remove call-id's of calls in the HIDDEN_OPEN_CALLS list that are no longer open
+        for (long callId : hiddenCallsToFreeFromMemory) {
+            HIDDEN_OPEN_CALLS.remove(callId);
+        }
     }
 
     public ClosedCallData[] getClosedCalls() {

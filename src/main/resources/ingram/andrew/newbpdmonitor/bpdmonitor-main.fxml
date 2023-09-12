@@ -26,6 +26,7 @@
                            <children>
                               <Label maxHeight="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="Next check in 2 minutes." HBox.hgrow="ALWAYS" />
                               <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" text="Force Check" />
+                              <Button fx:id="hideSelectedCallButton" alignment="CENTER" contentDisplay="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onHideSelectedCallButtonPressed" text="Hide Selected Call" />
                            </children>
                         </HBox>
                      </children>
@@ -42,7 +43,7 @@
                               <Label text="Calls Detected" BorderPane.alignment="CENTER" />
                            </top>
                            <center>
-                              <TableView fx:id="openCallsTable" BorderPane.alignment="CENTER">
+                              <TableView fx:id="openCallsTable" onMouseClicked="#onOpenCallsTableClicked" BorderPane.alignment="CENTER">
                                 <columns>
                                   <TableColumn prefWidth="49.66666793823242" text="Agency" />
                                   <TableColumn prefWidth="48.99999237060547" text="Service" />
