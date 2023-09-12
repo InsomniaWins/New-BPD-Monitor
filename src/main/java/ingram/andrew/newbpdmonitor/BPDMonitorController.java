@@ -4,20 +4,12 @@ import com.google.gson.Gson;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class BPDMonitorController {
@@ -34,11 +26,50 @@ public class BPDMonitorController {
     @FXML
     private Button getClosedCallsButton;
     @FXML
-    private TableView openCallsTable;
+    private TableView<OpenCallData> openCallsTable;
     @FXML
     private VBox searchTermsVBox;
     @FXML
-    private TableView closedCallsTable;
+    private TableView<ClosedCallData> closedCallsTable;
+    @FXML
+    private Button addSearchTermButton;
+    @FXML
+    private TextField addSearchTermTextField;
+    @FXML
+    protected void onAddSearchTermTextFieldEntered() {
+        tryToAddSearchTerm(addSearchTermTextField.getText());
+    }
+    @FXML
+    protected void onAddSearchTermButtonPressed() {
+        tryToAddSearchTerm(addSearchTermTextField.getText());
+    }
+
+    private void tryToAddSearchTerm(String searchTerm) {
+        if (!SearchTerms.addSearchTerm(searchTerm)) return;
+
+        addSearchTermTextField.setText("");
+
+        try {
+            updateSearchTermsDisplay();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateSearchTermsDisplay() throws IOException {
+
+        searchTermsVBox.getChildren().clear();
+
+        String[] searchTerms = SearchTerms.getSearchTerms();
+
+        for (String searchTerm : searchTerms) {
+            FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
+            BorderPane searchTermNode = (BorderPane) fxmlLoader.load();
+            Label searchTermLabel = (Label) searchTermNode.getCenter();
+            searchTermLabel.setText(searchTerm);
+            searchTermsVBox.getChildren().add(searchTermNode);
+        }
+    }
 
     @FXML
     protected void onOpenCallsButtonPressed() {
@@ -59,18 +90,6 @@ public class BPDMonitorController {
         saveThread.start();
     }
 
-    private void addSearchTermNode(String text) {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
-            BorderPane searchTermNode = (BorderPane) fxmlLoader.load();
-            Label searchTermLabel = (Label) ((HBox) searchTermNode.getChildren().get(0)).getChildren().get(0);
-            searchTermLabel.setText(text);
-            searchTermsVBox.getChildren().add(searchTermNode);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void savedClosedCalls() {
         saveClosedCallsButton.setDisable(false);
     }
@@ -82,9 +101,9 @@ public class BPDMonitorController {
 
     public void gotClosedCalls(String jsonString) {
         CLOSED_CALLS.clear();
-        CLOSED_CALLS.addAll(ClosedCallData.parseDataMap(GSON.fromJson(jsonString.toString(), Map.class)));
+        CLOSED_CALLS.addAll(ClosedCallData.parseDataMap(GSON.fromJson(jsonString, Map.class)));
 
-        ObservableList<TableColumn> columns = closedCallsTable.getColumns();
+        ObservableList<TableColumn<ClosedCallData, ?>> columns = closedCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {
             columns.get(0).setCellValueFactory(new PropertyValueFactory<>("agency"));
             columns.get(1).setCellValueFactory(new PropertyValueFactory<>("service"));
@@ -109,10 +128,7 @@ public class BPDMonitorController {
     }
 
     public void gotOpenCalls(String jsonString) {
-        OPEN_CALLS.clear();
-        OPEN_CALLS.addAll(OpenCallData.parseDataMap(GSON.fromJson(jsonString.toString(), Map.class)));
-
-        ObservableList<TableColumn> columns = openCallsTable.getColumns();
+        ObservableList<TableColumn<OpenCallData, ?>> columns = openCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {
             columns.get(0).setCellValueFactory(new PropertyValueFactory<>("agency"));
             columns.get(1).setCellValueFactory(new PropertyValueFactory<>("service"));
@@ -122,9 +138,14 @@ public class BPDMonitorController {
             columns.get(5).setCellValueFactory(new PropertyValueFactory<>("address"));
         }
 
+        OPEN_CALLS.clear();
         openCallsTable.getItems().clear();
-        for (OpenCallData openCallData : OPEN_CALLS) {
-            openCallsTable.getItems().add(openCallData);
+        ArrayList<OpenCallData> openCalls = OpenCallData.parseDataMap(GSON.fromJson(jsonString, Map.class));
+        for (OpenCallData openCallData : openCalls) {
+            if (SearchTerms.containsSearchTerm(openCallData)) {
+                OPEN_CALLS.add(openCallData);
+                openCallsTable.getItems().add(openCallData);
+            }
         }
 
         getOpenCallsButton.setDisable(false);

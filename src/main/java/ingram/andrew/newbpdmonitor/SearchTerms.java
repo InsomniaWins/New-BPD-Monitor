@@ -6,10 +6,13 @@ public class SearchTerms {
 
     private static final ArrayList<String> SEARCH_TERMS = new ArrayList<>();
 
-    public static void addSearchTerm(String searchTerm) {
+    public static boolean addSearchTerm(String searchTerm) {
         searchTerm = searchTerm.toUpperCase();
-        if (SEARCH_TERMS.contains(searchTerm)) return;
+
+        if (SEARCH_TERMS.contains(searchTerm)) return false;
+
         SEARCH_TERMS.add(searchTerm);
+        return true;
     }
 
     public static boolean hasSearchTerm(String searchTerm) {
@@ -21,7 +24,7 @@ public class SearchTerms {
     }
 
     public static String[] getSearchTerms() {
-        String[] returnArray = new String[] {};
+        String[] returnArray = new String[SEARCH_TERMS.size()];
         SEARCH_TERMS.toArray(returnArray);
         return returnArray;
     }

@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="360.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ingram.andrew.newbpdmonitor.BPDMonitorController">
+<TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ingram.andrew.newbpdmonitor.BPDMonitorController">
    <tabs>
       <Tab text="Open Calls">
          <content>
@@ -35,73 +35,61 @@
                   </HBox>
                </top>
                <center>
-                  <SplitPane dividerPositions="0.5" orientation="VERTICAL" BorderPane.alignment="CENTER">
-                     <items>
-                        <VBox alignment="CENTER">
-                           <children>
-                              <Label text="Call Details" />
-                              <TableView fx:id="openCallsTable" VBox.vgrow="ALWAYS">
-                                <columns>
-                                  <TableColumn prefWidth="75.0" text="Agency" />
-                                  <TableColumn prefWidth="75.0" text="Service" />
-                                    <TableColumn prefWidth="75.0" text="Start Time" />
-                                    <TableColumn prefWidth="75.0" text="ID" />
-                                    <TableColumn prefWidth="75.0" text="Nature" />
-                                    <TableColumn prefWidth="75.0" text="Address" />
-                                </columns>
-                              </TableView>
-                           </children>
-                        </VBox>
+                  <SplitPane dividerPositions="0.6404320987654321" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <items>
                         <BorderPane>
-                           <center>
-                              <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0">
-                                 <content>
-                                    <VBox prefHeight="150.0" />
-                                 </content>
-                              </ScrollPane>
-                           </center>
                            <top>
                               <Label text="Calls Detected" BorderPane.alignment="CENTER" />
                            </top>
+                           <center>
+                              <TableView fx:id="openCallsTable" BorderPane.alignment="CENTER">
+                                <columns>
+                                  <TableColumn prefWidth="49.66666793823242" text="Agency" />
+                                  <TableColumn prefWidth="48.99999237060547" text="Service" />
+                                    <TableColumn prefWidth="156.6666717529297" text="Start Time" />
+                                    <TableColumn prefWidth="87.33334350585938" text="ID" />
+                                    <TableColumn prefWidth="145.66665649414062" text="Nature" />
+                                    <TableColumn prefWidth="279.0" text="Address" />
+                                </columns>
+                              </TableView>
+                           </center>
                         </BorderPane>
-                     </items>
+                        <BorderPane prefHeight="200.0" prefWidth="200.0">
+                           <top>
+                              <VBox alignment="CENTER" prefHeight="45.0" prefWidth="230.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" text="Search Terms" />
+                                    <HBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="220.0" spacing="5.0">
+                                       <children>
+                                          <TextField fx:id="addSearchTermTextField" onAction="#onAddSearchTermTextFieldEntered" HBox.hgrow="ALWAYS">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </TextField>
+                                          <Button fx:id="addSearchTermButton" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onAddSearchTermButtonPressed" text="Add">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </Button>
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </top>
+                           <center>
+                              <ScrollPane fitToWidth="true" hbarPolicy="NEVER" BorderPane.alignment="CENTER">
+                                 <content>
+                                    <VBox fx:id="searchTermsVBox" prefHeight="200.0" />
+                                 </content>
+                              </ScrollPane>
+                           </center>
+                        </BorderPane>
+                    </items>
                   </SplitPane>
                </center>
-               <right>
-                  <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                     <top>
-                        <VBox alignment="CENTER" prefHeight="45.0" prefWidth="230.0" BorderPane.alignment="CENTER">
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" text="Search Terms" />
-                              <HBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="220.0" spacing="5.0">
-                                 <children>
-                                    <TextField>
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                    </TextField>
-                                    <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                    </Button>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                 </VBox.margin>
-                              </HBox>
-                           </children>
-                        </VBox>
-                     </top>
-                     <center>
-                        <ScrollPane hbarPolicy="NEVER" BorderPane.alignment="CENTER">
-                           <content>
-                              <VBox fx:id="searchTermsVBox" prefHeight="200.0" prefWidth="100.0" />
-                           </content>
-                        </ScrollPane>
-                     </center>
-                  </BorderPane>
-               </right>
             </BorderPane>
          </content>
       </Tab>
@@ -112,7 +100,7 @@
                   <HBox prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
                      <children>
                         <Button fx:id="getClosedCallsButton" mnemonicParsing="false" onAction="#onClosedCallsButtonPressed" text="Get Closed Calls" />
-                        <Button fx:id="saveClosedCallsButton" mnemonicParsing="false" onAction="#onSaveClosedCallsButtonPressed" text="Save To Text FIle" />
+                        <Button fx:id="saveClosedCallsButton" mnemonicParsing="false" onAction="#onSaveClosedCallsButtonPressed" text="Save As Excel FIle" />
                      </children>
                      <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -122,13 +110,13 @@
                <center>
                   <TableView fx:id="closedCallsTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                      <columns>
-                        <TableColumn prefWidth="75.0" text="Agency" />
-                        <TableColumn prefWidth="75.0" text="Service" />
-                        <TableColumn prefWidth="75.0" text="Start Time" />
-                        <TableColumn prefWidth="75.0" text="Close Time" />
-                        <TableColumn prefWidth="75.0" text="ID" />
-                        <TableColumn prefWidth="75.0" text="Nature" />
-                        <TableColumn prefWidth="75.0" text="Address" />
+                        <TableColumn prefWidth="47.0" text="Agency" />
+                        <TableColumn prefWidth="47.666664123535156" text="Service" />
+                        <TableColumn prefWidth="137.66665649414062" text="Start Time" />
+                        <TableColumn prefWidth="136.0" text="Close Time" />
+                        <TableColumn prefWidth="124.0" text="ID" />
+                        <TableColumn prefWidth="144.0" text="Nature" />
+                        <TableColumn prefWidth="390.0" text="Address" />
                      </columns>
                   </TableView>
                </center>
