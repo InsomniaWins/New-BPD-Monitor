@@ -6,7 +6,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="0.0" prefHeight="40.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
    <right>
-      <Button mnemonicParsing="false" text="Button" BorderPane.alignment="CENTER" />
+      <Button mnemonicParsing="false" text="Remove" BorderPane.alignment="CENTER" />
    </right>
    <center>
       <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" minWidth="0.0" text="This is a test label test test test" wrapText="true" BorderPane.alignment="CENTER" />

@@ -2,8 +2,11 @@ package ingram.andrew.newbpdmonitor;
 
 import com.google.gson.Gson;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
@@ -68,8 +71,30 @@ public class BPDMonitorController {
         for (String searchTerm : searchTerms) {
             FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
             BorderPane searchTermNode = (BorderPane) fxmlLoader.load();
+
             Label searchTermLabel = (Label) searchTermNode.getCenter();
             searchTermLabel.setText(searchTerm);
+
+            Button removeSearchTermButton = (Button) searchTermNode.getRight();
+            removeSearchTermButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent actionEvent) {
+                    Button removeSearchTermButton = (Button) actionEvent.getSource();
+                    Node parentNode = removeSearchTermButton.getParent();
+                    BorderPane searchTermNode = (BorderPane) parentNode;
+                    Label searchTermLabel = (Label) searchTermNode.getCenter();
+                    String searchTerm = searchTermLabel.getText();
+
+                    SearchTerms.removeSearchTerm(searchTerm);
+                    try {
+                        updateSearchTermsDisplay();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
+
             searchTermsVBox.getChildren().add(searchTermNode);
         }
     }
