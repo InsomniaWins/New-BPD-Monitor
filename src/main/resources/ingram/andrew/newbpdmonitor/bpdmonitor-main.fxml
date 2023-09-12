@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -22,11 +23,11 @@
                <top>
                   <HBox prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
                      <children>
-                        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" HBox.hgrow="ALWAYS">
                            <children>
                               <Label fx:id="nextOpenCallCheckLabel" maxHeight="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="_" HBox.hgrow="ALWAYS" />
                               <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" prefWidth="98.0" text="Force Check" />
-                              <Button fx:id="hideSelectedCallButton" alignment="CENTER" contentDisplay="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onHideSelectedCallButtonPressed" text="Hide Selected Call" />
+                              <Button fx:id="hideSelectedCallButton" alignment="CENTER" contentDisplay="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onHideSelectedCallButtonPressed" text="Mark As 'Seen'" />
                            </children>
                         </HBox>
                      </children>
@@ -67,7 +68,7 @@
                                                 <Insets />
                                              </HBox.margin>
                                           </TextField>
-                                          <Button fx:id="addSearchTermButton" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onAddSearchTermButtonPressed" text="Add">
+                                          <Button alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onAddSearchTermButtonPressed" text="Add">
                                              <HBox.margin>
                                                 <Insets />
                                              </HBox.margin>
@@ -98,8 +99,15 @@
         <content>
             <BorderPane>
                <top>
-                  <HBox prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
+                  <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
                      <children>
+                        <VBox maxWidth="1.7976931348623157E308" prefHeight="200.0" spacing="5.0">
+                           <children>
+                              <RadioButton fx:id="automaticallyGetClosedCallsRadioButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Automatically Get Closed Calls" />
+                              <RadioButton fx:id="automaticallySaveToExcelFileRadioButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Automatically Save To Excel File" />
+                              <Label fx:id="nextClosedCallCheckLabel" text="_" />
+                           </children>
+                        </VBox>
                         <Button fx:id="getClosedCallsButton" mnemonicParsing="false" onAction="#onClosedCallsButtonPressed" text="Get Closed Calls" />
                         <Button fx:id="saveClosedCallsButton" mnemonicParsing="false" onAction="#onSaveClosedCallsButtonPressed" text="Save As Excel FIle" />
                      </children>

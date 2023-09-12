@@ -12,8 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import org.apache.poi.ss.formula.functions.T;
-
+import org.controlsfx.control.Notifications;
 import java.io.IOException;
 import java.util.*;
 
@@ -24,6 +23,7 @@ public class BPDMonitorController {
     private final ArrayList<OpenCallData> OPEN_CALLS = new ArrayList<>();
     private final ArrayList<Long> HIDDEN_OPEN_CALLS = new ArrayList<>(); // list of open-calls that have been hidden from search results
     private Timer downloadOpenCallsTimer;
+    private Timer downloadClosedCallsTimer;
 
     @FXML
     private Button saveClosedCallsButton;
@@ -38,13 +38,18 @@ public class BPDMonitorController {
     @FXML
     private TableView<ClosedCallData> closedCallsTable;
     @FXML
-    private Button addSearchTermButton;
-    @FXML
     private TextField addSearchTermTextField;
     @FXML
     private Button hideSelectedCallButton;
     @FXML
     private Label nextOpenCallCheckLabel;
+    @FXML
+    private Label nextClosedCallCheckLabel;
+    @FXML
+    private RadioButton automaticallyGetClosedCallsRadioButton;
+    @FXML
+    private RadioButton automaticallySaveToExcelFileRadioButton;
+
     @FXML
     protected void onAddSearchTermTextFieldEntered() {
         tryToAddSearchTerm(addSearchTermTextField.getText());
@@ -59,7 +64,7 @@ public class BPDMonitorController {
     public void onProgramInitialize() {
         // make timer that auto-downloads open calls every 2 minutes
         downloadOpenCallsTimer = new Timer();
-        TimerTask timerTask = new TimerTask() {
+        TimerTask openCallsTimerTask = new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(new Runnable() {
@@ -71,13 +76,33 @@ public class BPDMonitorController {
                 });
             }
         };
-        downloadOpenCallsTimer.scheduleAtFixedRate(timerTask, 1000, 120000); // every two minutes
+        downloadOpenCallsTimer.scheduleAtFixedRate(openCallsTimerTask, 1000, 120000); // every two minutes
+
+        // make timer that auto-downloads closed calls every 1 hour
+        downloadClosedCallsTimer = new Timer();
+        TimerTask closedCallsTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (automaticallyGetClosedCallsRadioButton.isSelected()) {
+                            nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
+                            downloadClosedCalls();
+                        }
+                    }
+                });
+            }
+        };
+        downloadClosedCallsTimer.scheduleAtFixedRate(closedCallsTimerTask, 1000, 120000); // every two minutes
+
     }
 
     // called when program is closed
     public void onProgramClose() {
         // cancel download timers
         downloadOpenCallsTimer.cancel();
+        downloadClosedCallsTimer.cancel();
     }
 
     private void tryToAddSearchTerm(String searchTerm) {
@@ -161,12 +186,15 @@ public class BPDMonitorController {
 
     @FXML
     protected void onClosedCallsButtonPressed() {
-        getClosedCallsButton.setDisable(true);
         downloadClosedCalls();
     }
 
     @FXML
     protected void onSaveClosedCallsButtonPressed() {
+        saveClosedCalls();
+    }
+
+    private void saveClosedCalls() {
         saveClosedCallsButton.setDisable(true);
         Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
         saveThread.start();
@@ -177,6 +205,7 @@ public class BPDMonitorController {
     }
 
     private void downloadClosedCalls() {
+        getClosedCallsButton.setDisable(true);
         Thread downloadThread = new Thread(new ClosedCallsDownloadRunnable(this));
         downloadThread.start();
     }
@@ -202,6 +231,10 @@ public class BPDMonitorController {
         }
 
         getClosedCallsButton.setDisable(false);
+
+        if (automaticallySaveToExcelFileRadioButton.isSelected()) {
+            saveClosedCalls();
+        }
     }
 
     private void downloadOpenCalls() {
@@ -230,6 +263,7 @@ public class BPDMonitorController {
         openCallsTable.getItems().clear();
 
         // get open calls
+        boolean showNotification = false;
         ArrayList<OpenCallData> openCalls = OpenCallData.parseDataMap(GSON.fromJson(jsonString, Map.class));
         for (OpenCallData openCallData : openCalls) {
 
@@ -249,7 +283,12 @@ public class BPDMonitorController {
                 // add open call to OPEN_CALLS list and table-view
                 OPEN_CALLS.add(openCallData);
                 openCallsTable.getItems().add(openCallData);
+                showNotification = true;
             }
+        }
+
+        if (showNotification) {
+            showNotification(Notifications.create().title("BPD Monitor").text("There are open-calls pending action!"));
         }
 
         // enable "Get Open Calls" button
@@ -259,6 +298,17 @@ public class BPDMonitorController {
         for (long callId : hiddenCallsToFreeFromMemory) {
             HIDDEN_OPEN_CALLS.remove(callId);
         }
+    }
+
+
+    // makes sure a notification is only shown using the JavaFX thread
+    private void showNotification(Notifications notification) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                notification.showWarning();
+            }
+        });
     }
 
     public ClosedCallData[] getClosedCalls() {
