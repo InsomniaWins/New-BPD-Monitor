@@ -22,10 +22,10 @@
                <top>
                   <HBox prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
                      <children>
-                        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
+                        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Label maxHeight="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="Next check in 2 minutes." HBox.hgrow="ALWAYS" />
-                              <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" text="Force Check" />
+                              <Label fx:id="nextOpenCallCheckLabel" maxHeight="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="_" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" prefWidth="98.0" text="Force Check" />
                               <Button fx:id="hideSelectedCallButton" alignment="CENTER" contentDisplay="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onHideSelectedCallButtonPressed" text="Hide Selected Call" />
                            </children>
                         </HBox>

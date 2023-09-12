@@ -1,6 +1,7 @@
 package ingram.andrew.newbpdmonitor;
 
 import com.google.gson.Gson;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -11,10 +12,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import org.apache.poi.ss.formula.functions.T;
+
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 public class BPDMonitorController {
 
@@ -42,12 +43,33 @@ public class BPDMonitorController {
     @FXML
     private Button hideSelectedCallButton;
     @FXML
+    private Label nextOpenCallCheckLabel;
+    @FXML
     protected void onAddSearchTermTextFieldEntered() {
         tryToAddSearchTerm(addSearchTermTextField.getText());
     }
     @FXML
     protected void onAddSearchTermButtonPressed() {
         tryToAddSearchTerm(addSearchTermTextField.getText());
+    }
+
+
+    public void initialize() {
+        // make timer that auto-downloads open calls every 2 minutes
+        Timer downloadOpenCallsTimer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        nextOpenCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 120000));
+                        downloadOpenCalls();
+                    }
+                });
+            }
+        };
+        downloadOpenCallsTimer.scheduleAtFixedRate(timerTask, 1000, 120000); // every two minutes
     }
 
     private void tryToAddSearchTerm(String searchTerm) {

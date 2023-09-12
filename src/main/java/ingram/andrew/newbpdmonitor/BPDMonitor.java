@@ -16,6 +16,8 @@ public class BPDMonitor extends Application {
         stage.setTitle("BPD Monitor");
         stage.setScene(scene);
         stage.show();
+        BPDMonitorController controller = fxmlLoader.getController();
+        controller.initialize();
     }
 
     public static void main(String[] args) {
