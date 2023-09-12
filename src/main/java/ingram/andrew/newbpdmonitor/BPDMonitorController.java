@@ -23,6 +23,7 @@ public class BPDMonitorController {
     private final ArrayList<ClosedCallData> CLOSED_CALLS = new ArrayList<>();
     private final ArrayList<OpenCallData> OPEN_CALLS = new ArrayList<>();
     private final ArrayList<Long> HIDDEN_OPEN_CALLS = new ArrayList<>(); // list of open-calls that have been hidden from search results
+    private Timer downloadOpenCallsTimer;
 
     @FXML
     private Button saveClosedCallsButton;
@@ -54,9 +55,10 @@ public class BPDMonitorController {
     }
 
 
-    public void initialize() {
+    // called when window/program is opened
+    public void onProgramInitialize() {
         // make timer that auto-downloads open calls every 2 minutes
-        Timer downloadOpenCallsTimer = new Timer();
+        downloadOpenCallsTimer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -70,6 +72,12 @@ public class BPDMonitorController {
             }
         };
         downloadOpenCallsTimer.scheduleAtFixedRate(timerTask, 1000, 120000); // every two minutes
+    }
+
+    // called when program is closed
+    public void onProgramClose() {
+        // cancel download timers
+        downloadOpenCallsTimer.cancel();
     }
 
     private void tryToAddSearchTerm(String searchTerm) {

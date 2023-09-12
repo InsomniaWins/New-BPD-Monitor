@@ -7,6 +7,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class BPDMonitor extends Application {
+
+    private BPDMonitorController controller;
+
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("bpdmonitor-main.fxml"));
@@ -16,8 +19,13 @@ public class BPDMonitor extends Application {
         stage.setTitle("BPD Monitor");
         stage.setScene(scene);
         stage.show();
-        BPDMonitorController controller = fxmlLoader.getController();
-        controller.initialize();
+        controller = fxmlLoader.getController();
+        controller.onProgramInitialize();
+    }
+
+    @Override
+    public void stop() {
+        controller.onProgramClose();
     }
 
     public static void main(String[] args) {
