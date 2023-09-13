@@ -218,6 +218,9 @@ public class BPDMonitorController {
     }
 
     public void gotOpenCalls(String jsonString) {
+
+        hideSelectedCallButton.setDisable(true);
+
         // make sure table has the needed property value factories
         ObservableList<TableColumn<OpenCallData, ?>> columns = openCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {

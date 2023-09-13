@@ -9,7 +9,7 @@ public class SearchTerms {
     public static boolean addSearchTerm(String searchTerm) {
         searchTerm = searchTerm.toUpperCase();
 
-        if (SEARCH_TERMS.contains(searchTerm)) return false;
+        if (SEARCH_TERMS.contains(searchTerm) || searchTerm.isEmpty()) return false;
 
         SEARCH_TERMS.add(searchTerm);
         return true;
