@@ -86,6 +86,20 @@ public class BPDMonitorController {
         };
         downloadClosedCallsTimer.scheduleAtFixedRate(closedCallsTimerTask, 1000, 120000); // every two minutes
 
+        // create event listeners
+        SearchTerms.addListener(new SearchTermsEventListener() {
+            @Override
+            public void onSearchTermsUpdated() {
+                try {
+                    updateSearchTermsDisplay();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // load search terms
+        SearchTerms.load();
     }
 
     // called when program is closed
@@ -97,14 +111,7 @@ public class BPDMonitorController {
 
     private void tryToAddSearchTerm(String searchTerm) {
         if (!SearchTerms.addSearchTerm(searchTerm)) return;
-
         addSearchTermTextField.setText("");
-
-        try {
-            updateSearchTermsDisplay();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void updateSearchTermsDisplay() throws IOException {
@@ -131,12 +138,6 @@ public class BPDMonitorController {
                     String searchTerm = searchTermLabel.getText();
 
                     SearchTerms.removeSearchTerm(searchTerm);
-                    try {
-                        updateSearchTermsDisplay();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
                 }
             });
 

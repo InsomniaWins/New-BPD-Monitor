@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class BPDMonitor extends Application {
 
-    private BPDMonitorController controller;
+    private static BPDMonitorController controller;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -30,5 +30,9 @@ public class BPDMonitor extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    public static BPDMonitorController getController() {
+        return controller;
     }
 }
