@@ -26,11 +26,7 @@ public class BPDMonitorController {
     private Timer downloadClosedCallsTimer;
 
     @FXML
-    private Button saveClosedCallsButton;
-    @FXML
     private Button getOpenCallsButton;
-    @FXML
-    private Button getClosedCallsButton;
     @FXML
     private TableView<OpenCallData> openCallsTable;
     @FXML
@@ -45,10 +41,6 @@ public class BPDMonitorController {
     private Label nextOpenCallCheckLabel;
     @FXML
     private Label nextClosedCallCheckLabel;
-    @FXML
-    private RadioButton automaticallyGetClosedCallsRadioButton;
-    @FXML
-    private RadioButton automaticallySaveToExcelFileRadioButton;
 
     @FXML
     protected void onAddSearchTermTextFieldEntered() {
@@ -86,10 +78,8 @@ public class BPDMonitorController {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        if (automaticallyGetClosedCallsRadioButton.isSelected()) {
-                            nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
-                            downloadClosedCalls();
-                        }
+                        nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
+                        downloadClosedCalls();
                     }
                 });
             }
@@ -184,28 +174,16 @@ public class BPDMonitorController {
         downloadOpenCalls();
     }
 
-    @FXML
-    protected void onClosedCallsButtonPressed() {
-        downloadClosedCalls();
-    }
-
-    @FXML
-    protected void onSaveClosedCallsButtonPressed() {
-        saveClosedCalls();
-    }
-
     private void saveClosedCalls() {
-        saveClosedCallsButton.setDisable(true);
         Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
         saveThread.start();
     }
 
     public void savedClosedCalls() {
-        saveClosedCallsButton.setDisable(false);
+
     }
 
     private void downloadClosedCalls() {
-        getClosedCallsButton.setDisable(true);
         Thread downloadThread = new Thread(new ClosedCallsDownloadRunnable(this));
         downloadThread.start();
     }
@@ -230,11 +208,7 @@ public class BPDMonitorController {
             closedCallsTable.getItems().add(closedCallData);
         }
 
-        getClosedCallsButton.setDisable(false);
-
-        if (automaticallySaveToExcelFileRadioButton.isSelected()) {
-            saveClosedCalls();
-        }
+        saveClosedCalls();
     }
 
     private void downloadOpenCalls() {

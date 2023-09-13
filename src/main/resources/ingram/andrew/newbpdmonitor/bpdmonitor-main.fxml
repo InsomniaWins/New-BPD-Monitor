@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -101,15 +100,7 @@
                <top>
                   <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0" spacing="20.0" BorderPane.alignment="CENTER">
                      <children>
-                        <VBox maxWidth="1.7976931348623157E308" prefHeight="200.0" spacing="5.0">
-                           <children>
-                              <RadioButton fx:id="automaticallyGetClosedCallsRadioButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Automatically Get Closed Calls" />
-                              <RadioButton fx:id="automaticallySaveToExcelFileRadioButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Automatically Save To Excel File" />
-                              <Label fx:id="nextClosedCallCheckLabel" text="_" />
-                           </children>
-                        </VBox>
-                        <Button fx:id="getClosedCallsButton" mnemonicParsing="false" onAction="#onClosedCallsButtonPressed" text="Get Closed Calls" />
-                        <Button fx:id="saveClosedCallsButton" mnemonicParsing="false" onAction="#onSaveClosedCallsButtonPressed" text="Save As Excel FIle" />
+                        <Label fx:id="nextClosedCallCheckLabel" text="_" />
                      </children>
                      <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
