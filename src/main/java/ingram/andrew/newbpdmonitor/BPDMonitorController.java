@@ -302,7 +302,7 @@ public class BPDMonitorController {
 
 
     // makes sure a notification is only shown using the JavaFX thread
-    private void showNotification(Notifications notification) {
+    public static void showNotification(Notifications notification) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
