@@ -12,7 +12,7 @@ public class SearchTerms {
     public static boolean addSearchTerm(String searchTerm) {
         searchTerm = searchTerm.toUpperCase();
 
-        if (SEARCH_TERMS.contains(searchTerm) || searchTerm.isEmpty()) return false;
+        if (hasSearchTerm(searchTerm) || searchTerm.isEmpty()) return false;
 
         SEARCH_TERMS.add(searchTerm);
 
@@ -29,6 +29,7 @@ public class SearchTerms {
 
     public static void removeSearchTerm(String searchTerm) {
         SEARCH_TERMS.remove(searchTerm);
+        save();
         searchTermsUpdated();
     }
 
@@ -67,6 +68,12 @@ public class SearchTerms {
 
     public static void load() {
         File saveFile = new File("search-terms.txt");
+
+        if (!saveFile.exists()) {
+            System.out.println("Tried to read 'search-terms.txt' while file does not exist.");
+            return;
+        }
+
         try {
             FileReader fileReader = new FileReader(saveFile);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -80,6 +87,7 @@ public class SearchTerms {
             fileReader.close();
             bufferedReader.close();
         } catch (IOException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
         }
     }
@@ -95,6 +103,7 @@ public class SearchTerms {
 
             writer.close();
         } catch (IOException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
         }
     }

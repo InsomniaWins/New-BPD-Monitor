@@ -37,7 +37,7 @@ public class OpenCallData implements CallData{
 
     public static ArrayList<OpenCallData> parseDataMap(Map<?,?> dataMap) {
         ArrayList<OpenCallData> returnArray = new ArrayList<>();
-        ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
+        @SuppressWarnings("unchecked") ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
 
         for (Map<Object, Object> callDetailsMap : rows) {
 

@@ -1,17 +1,13 @@
 package ingram.andrew.newbpdmonitor;
 
-import org.apache.poi.EmptyFileException;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.WorkbookUtil;
-import org.controlsfx.control.Notifications;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class SaveClosedCallsRunnable implements Runnable{
@@ -49,23 +45,25 @@ public class SaveClosedCallsRunnable implements Runnable{
         int closeDayOfMonth = Integer.parseInt(closeDate[1]);
         int closeYear = Integer.parseInt(closeDate[2]);
 
-        return new StringBuilder().append("Output_")
-                .append(closeMonth)
-                .append("-")
-                .append(closeDayOfMonth)
-                .append("-")
-                .append(closeYear)
-                .append(".xlsx")
-                .toString();
+        return "output/Output_" + closeMonth + "-" + closeDayOfMonth + "-" + closeYear + ".xlsx";
     }
 
     private Workbook createAndOpenWorkbook(String fileName, String sheetName) throws IOException {
+
+        File fileDirectory = new File("output");
+        boolean makeDirectoryResult = fileDirectory.mkdirs();
+
         File tempFile = new File(fileName);
         if (tempFile.exists()) {
+
             FileInputStream inputStream = new FileInputStream(fileName);
             Workbook workbook = WorkbookFactory.create(inputStream);
             inputStream.close();
-            tempFile.delete();
+            boolean makeFileResult = tempFile.delete();
+
+            if (!makeFileResult) {
+                System.out.println("ERROR > failed to delete old closed-calls spreadsheet file!");
+            }
 
             if (workbook.getSheet(sheetName) == null) {
                 workbook.createSheet();
@@ -120,6 +118,7 @@ public class SaveClosedCallsRunnable implements Runnable{
                 workbook.close();
             }
         } catch (IOException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
         }
 

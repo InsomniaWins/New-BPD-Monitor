@@ -61,7 +61,6 @@
     -fx-background-color: transparent;
 }
 
-
 .table-view .table-cell{
     -fx-text-fill: #A9A9A9;
 }
@@ -96,5 +95,21 @@
 
 .scroll-pane {
     -fx-background: #181818;
+    -fx-background-color: #181818;
+}
+
+.scroll-bar {
+    -fx-background-color: #181818;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #434343;
+}
+
+.check-box {
+    -fx-text-fill: #A9A9A9;
+}
+
+.check-box .box {
     -fx-background-color: #181818;
 }

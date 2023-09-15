@@ -4,27 +4,34 @@ import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.*;
 
 public class BPDMonitorController {
-
     private final Gson GSON = new Gson();
     private final ArrayList<ClosedCallData> CLOSED_CALLS = new ArrayList<>();
     private final ArrayList<OpenCallData> OPEN_CALLS = new ArrayList<>();
     private final ArrayList<Long> HIDDEN_OPEN_CALLS = new ArrayList<>(); // list of open-calls that have been hidden from search results
+    private final MediaPlayer NOTIFICATION_SOUND_MEDIA_PLAYER = new MediaPlayer(new Media(Objects.requireNonNull(getClass().getResource("audio/new_open_call.wav")).toString()));
+    private final MediaPlayer NOTIFICATION_REMINDER_SOUND_MEDIA_PLAYER = new MediaPlayer(new Media(Objects.requireNonNull(getClass().getResource("audio/notification_reminder.wav")).toString()));
     private Timer downloadOpenCallsTimer;
     private Timer downloadClosedCallsTimer;
 
+    @FXML
+    private CheckBox muteAlertAudioCheckbox;
+    @FXML
+    private CheckBox muteReminderAudioCheckbox;
     @FXML
     private Button getOpenCallsButton;
     @FXML
@@ -59,12 +66,9 @@ public class BPDMonitorController {
         TimerTask openCallsTimerTask = new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        nextOpenCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 120000));
-                        downloadOpenCalls();
-                    }
+                Platform.runLater(() -> {
+                    nextOpenCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 120000));
+                    downloadOpenCalls();
                 });
             }
         };
@@ -75,12 +79,9 @@ public class BPDMonitorController {
         TimerTask closedCallsTimerTask = new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
-                        downloadClosedCalls();
-                    }
+                Platform.runLater(() -> {
+                    nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
+                    downloadClosedCalls();
                 });
             }
         };
@@ -93,13 +94,16 @@ public class BPDMonitorController {
                 try {
                     updateSearchTermsDisplay();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("ERROR > failed to update display of search terms!");
                 }
             }
         });
 
         // load search terms
         SearchTerms.load();
+
+        // load settings
+        loadSettings();
     }
 
     // called when program is closed
@@ -122,24 +126,13 @@ public class BPDMonitorController {
 
         for (String searchTerm : searchTerms) {
             FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
-            BorderPane searchTermNode = (BorderPane) fxmlLoader.load();
+            BorderPane searchTermNode = fxmlLoader.load();
 
             Label searchTermLabel = (Label) searchTermNode.getCenter();
             searchTermLabel.setText(searchTerm);
 
             Button removeSearchTermButton = (Button) searchTermNode.getRight();
-            removeSearchTermButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent actionEvent) {
-                    Button removeSearchTermButton = (Button) actionEvent.getSource();
-                    Node parentNode = removeSearchTermButton.getParent();
-                    BorderPane searchTermNode = (BorderPane) parentNode;
-                    Label searchTermLabel = (Label) searchTermNode.getCenter();
-                    String searchTerm = searchTermLabel.getText();
-
-                    SearchTerms.removeSearchTerm(searchTerm);
-                }
-            });
+            removeSearchTermButton.addEventHandler(ActionEvent.ACTION, (ActionEvent actionEvent) -> SearchTerms.removeSearchTerm(searchTerm));
 
             searchTermsVBox.getChildren().add(searchTermNode);
         }
@@ -154,8 +147,12 @@ public class BPDMonitorController {
 
         HIDDEN_OPEN_CALLS.add(selectedOpenCallData.getID());
 
+        OPEN_CALLS.remove(selectedOpenCallData);
+
         openCallsTable.getSelectionModel().select(null);
-        downloadOpenCalls();
+
+        updateOpenCallsTable();
+
     }
 
     @FXML
@@ -175,6 +172,16 @@ public class BPDMonitorController {
         downloadOpenCalls();
     }
 
+    @FXML
+    protected void onMuteAlertAudioCheckboxPressed() {
+        saveSettings();
+    }
+
+    @FXML
+    protected void onMuteReminderAudioCheckboxPressed() {
+        saveSettings();
+    }
+
     private void saveClosedCalls() {
         Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
         saveThread.start();
@@ -191,7 +198,10 @@ public class BPDMonitorController {
 
     public void gotClosedCalls(String jsonString) {
         CLOSED_CALLS.clear();
-        CLOSED_CALLS.addAll(ClosedCallData.parseDataMap(GSON.fromJson(jsonString, Map.class)));
+
+        @SuppressWarnings("unchecked") Map<String, ArrayList<Map<Object, Object>>> dataMap = GSON.fromJson(jsonString, Map.class);
+
+        CLOSED_CALLS.addAll(ClosedCallData.parseDataMap(dataMap));
 
         ObservableList<TableColumn<ClosedCallData, ?>> columns = closedCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {
@@ -213,16 +223,48 @@ public class BPDMonitorController {
     }
 
     private void downloadOpenCalls() {
+
         getOpenCallsButton.setDisable(true);
         Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
         downloadThread.start();
     }
 
-    public void gotOpenCalls(String jsonString) {
+    public void gotOpenCalls(ArrayList<OpenCallData> newOpenCallData, boolean shouldShowNotification, boolean shouldPlayNotificationSound, ArrayList<Long> hiddenCallsToFreeFromMemory) {
 
+        // remove call-id's of calls in the HIDDEN_OPEN_CALLS list that are no longer open
+        for (long callId : hiddenCallsToFreeFromMemory) {
+            HIDDEN_OPEN_CALLS.remove(callId);
+        }
+
+        // disable hide call button to prevent user from pressing it while no call is selected
         hideSelectedCallButton.setDisable(true);
 
-        // make sure table has the needed property value factories
+
+        // clear and update open calls list
+        OPEN_CALLS.clear();
+        OPEN_CALLS.addAll(newOpenCallData);
+
+        // clear and update open calls table
+        updateOpenCallsTable();
+
+        // enable "Get Open Calls" button
+        getOpenCallsButton.setDisable(false);
+
+
+        // display notification
+        if (shouldShowNotification) {
+            showNotification(Notifications.create().title("BPD Monitor").text("There are open-calls pending action!"));
+        }
+
+        // play notification sound
+        if (shouldPlayNotificationSound) {
+            playNotificationSound();
+        } else if (shouldShowNotification) {
+            playNotificationReminderSound();
+        }
+    }
+
+    public void updateOpenCallsTable() {
         ObservableList<TableColumn<OpenCallData, ?>> columns = openCallsTable.getColumns();
         if (columns.get(0).getCellValueFactory() == null) {
             columns.get(0).setCellValueFactory(new PropertyValueFactory<>("agency"));
@@ -232,64 +274,108 @@ public class BPDMonitorController {
             columns.get(4).setCellValueFactory(new PropertyValueFactory<>("nature"));
             columns.get(5).setCellValueFactory(new PropertyValueFactory<>("address"));
         }
-
-        // list to keep track of what hidden calls are no longer required to be tracked (list of hidden open calls that are now closed)
-        ArrayList<Long> hiddenCallsToFreeFromMemory = (ArrayList<Long>) HIDDEN_OPEN_CALLS.clone();
-
-        // clear open calls list and the table-view
-        OPEN_CALLS.clear();
         openCallsTable.getItems().clear();
-
-        // get open calls
-        boolean showNotification = false;
-        ArrayList<OpenCallData> openCalls = OpenCallData.parseDataMap(GSON.fromJson(jsonString, Map.class));
-        for (OpenCallData openCallData : openCalls) {
-
-            // if the current open call fits a search term
-            if (SearchTerms.containsSearchTerm(openCallData)) {
-
-                // if current open call is within HIDDEN_OPEN_CALLS list
-                if (HIDDEN_OPEN_CALLS.contains(openCallData.getID())) {
-
-                    // make sure the program remembers this case is hidden and to not free the case-id from the hidden list
-                    hiddenCallsToFreeFromMemory.remove(openCallData.getID());
-
-                    // don't add open call to table-view or OPEN_CALLS list
-                    continue;
-                }
-
-                // add open call to OPEN_CALLS list and table-view
-                OPEN_CALLS.add(openCallData);
-                openCallsTable.getItems().add(openCallData);
-                showNotification = true;
-            }
-        }
-
-        if (showNotification) {
-            showNotification(Notifications.create().title("BPD Monitor").text("There are open-calls pending action!"));
-        }
-
-        // enable "Get Open Calls" button
-        getOpenCallsButton.setDisable(false);
-
-        // remove call-id's of calls in the HIDDEN_OPEN_CALLS list that are no longer open
-        for (long callId : hiddenCallsToFreeFromMemory) {
-            HIDDEN_OPEN_CALLS.remove(callId);
+        for (OpenCallData openCallData : OPEN_CALLS) {
+            openCallsTable.getItems().add(openCallData);
         }
     }
 
+    // plays loud obvious alert sound
+    private void playNotificationSound() {
+
+        if (muteAlertAudioCheckbox.isSelected()) return;
+
+        NOTIFICATION_SOUND_MEDIA_PLAYER.seek(Duration.ZERO);
+        NOTIFICATION_SOUND_MEDIA_PLAYER.play();
+    }
+
+    // plays quiet casual reminder alert sound
+    private void playNotificationReminderSound() {
+
+        if (muteReminderAudioCheckbox.isSelected()) return;
+
+        NOTIFICATION_REMINDER_SOUND_MEDIA_PLAYER.seek(Duration.ZERO);
+        NOTIFICATION_REMINDER_SOUND_MEDIA_PLAYER.play();
+    }
 
     // makes sure a notification is only shown using the JavaFX thread
     public static void showNotification(Notifications notification) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                notification.showWarning();
+        Platform.runLater(notification::showWarning);
+    }
+
+    private void loadSettings() {
+
+        File settingsFile = new File("settings.txt");
+        if (!settingsFile.exists()) {
+            System.out.println("Tried loading settings file while settings file does not exist.");
+            saveSettings();
+            return;
+        }
+
+
+        try {
+            FileInputStream inputStream = new FileInputStream(settingsFile);
+
+            int muteAlertSound = inputStream.read();
+            int muteReminderSound = inputStream.read();
+
+            if (muteAlertSound == 0) {
+                muteAlertAudioCheckbox.setSelected(false);
+            } else if (muteReminderSound != -1) {
+                muteAlertAudioCheckbox.setSelected(true);
             }
-        });
+
+            if (muteReminderSound == 0) {
+                muteReminderAudioCheckbox.setSelected(false);
+            } else if (muteReminderSound != -1) {
+                muteReminderAudioCheckbox.setSelected(true);
+            }
+
+            inputStream.close();
+        } catch (FileNotFoundException e) {
+            // TODO: replace with better logging system
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO: replace with better logging system
+            e.printStackTrace();
+        }
+
+    }
+
+    private void saveSettings() {
+
+        File outputFile = new File("settings.txt");
+
+        try {
+            FileOutputStream outputStream = new FileOutputStream(outputFile);
+
+            if (muteAlertAudioCheckbox.isSelected()) outputStream.write(1); else outputStream.write(0);
+            if (muteReminderAudioCheckbox.isSelected()) outputStream.write(1); else outputStream.write(0);
+
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            // TODO: replace with better logging system
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO: replace with better logging system
+            e.printStackTrace();
+        }
+
     }
 
     public ClosedCallData[] getClosedCalls() {
         return CLOSED_CALLS.toArray(new ClosedCallData[]{});
+    }
+
+    public OpenCallData[] getOpenCalls() {
+        return OPEN_CALLS.toArray(new OpenCallData[]{});
+    }
+
+    public ArrayList<Long> getHiddenOpenCalls() {
+        return new ArrayList<>(HIDDEN_OPEN_CALLS);
+    }
+
+    public Gson getGson() {
+        return GSON;
     }
 }

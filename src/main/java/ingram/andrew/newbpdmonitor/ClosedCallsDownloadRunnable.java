@@ -27,6 +27,7 @@ public class ClosedCallsDownloadRunnable implements Runnable {
             connection = url.openConnection();
             connection.setDoOutput(true);
         } catch (IOException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
         }
 
@@ -37,10 +38,7 @@ public class ClosedCallsDownloadRunnable implements Runnable {
 
 
         // fetch data
-        int dataAmount = 30; // how many open calls to fetch
-        long currentTime = System.currentTimeMillis(); // used to verify request on server end
-
-        String postData = "t=css&_search=false&nd=" + Long.toString(System.currentTimeMillis()) + "&rows=" + Integer.toString(10000) + "&page=1&sidx=starttime&sord=desc";
+        String postData = "t=css&_search=false&nd=" + System.currentTimeMillis() + "&rows=" + 10000 + "&page=1&sidx=starttime&sord=desc";
         connection.setRequestProperty("Content-Length", Integer.toString(postData.length()));
 
         DataOutputStream outputStream;
@@ -48,6 +46,7 @@ public class ClosedCallsDownloadRunnable implements Runnable {
             outputStream = new DataOutputStream(connection.getOutputStream());
             outputStream.writeBytes(postData);
         } catch (UnknownHostException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
             return;
         } catch (IOException e) {
@@ -63,6 +62,7 @@ public class ClosedCallsDownloadRunnable implements Runnable {
         try {
             buffReader = new BufferedReader(new java.io.InputStreamReader(connection.getInputStream()));
         } catch (IOException e) {
+            // TODO: replace with better logging system
             e.printStackTrace();
         }
 

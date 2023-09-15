@@ -1,6 +1,7 @@
 module ingram.andrew.newbpdmonitor {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.media;
     requires org.controlsfx.controls;
     requires org.apache.poi.poi;
     requires org.apache.poi.ooxml;

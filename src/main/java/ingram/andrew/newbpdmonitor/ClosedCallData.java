@@ -44,9 +44,9 @@ public class ClosedCallData implements CallData{
         return returnString;
     }
 
-    public static ArrayList<ClosedCallData> parseDataMap(Map<?,?> dataMap) {
+    public static ArrayList<ClosedCallData> parseDataMap(Map<String, ArrayList<Map<Object, Object>>> dataMap) {
         ArrayList<ClosedCallData> returnArray = new ArrayList<>();
-        ArrayList<Map<Object, Object>> rows = (ArrayList<Map<Object, Object>>) dataMap.get("rows");
+        ArrayList<Map<Object, Object>> rows = dataMap.get("rows");
 
         for (Map<Object, Object> callDetailsMap : rows) {
 
