@@ -1,4 +1,6 @@
-package ingram.andrew.newbpdmonitor;
+package ingram.andrew.newbpdmonitor.searchterms;
+
+import ingram.andrew.newbpdmonitor.data.CallData;
 
 import java.io.*;
 import java.util.ArrayList;

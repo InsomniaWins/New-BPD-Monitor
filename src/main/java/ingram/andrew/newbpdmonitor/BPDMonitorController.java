@@ -1,6 +1,14 @@
 package ingram.andrew.newbpdmonitor;
 
 import com.google.gson.Gson;
+import ingram.andrew.newbpdmonitor.data.ClosedCallData;
+import ingram.andrew.newbpdmonitor.data.OpenCallData;
+import ingram.andrew.newbpdmonitor.runnable.ClosedCallsDownloadRunnable;
+import ingram.andrew.newbpdmonitor.runnable.OpenCallsDownloadRunnable;
+import ingram.andrew.newbpdmonitor.runnable.SaveClosedCallsRunnable;
+import ingram.andrew.newbpdmonitor.searchterms.SearchTerms;
+import ingram.andrew.newbpdmonitor.searchterms.SearchTermsEventListener;
+import ingram.andrew.newbpdmonitor.util.Settings;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,14 +27,16 @@ import java.io.*;
 import java.util.*;
 
 public class BPDMonitorController {
+    private static BPDMonitorController instance;
     private final Gson GSON = new Gson();
-    private final ArrayList<ClosedCallData> CLOSED_CALLS = new ArrayList<>();
-    private final ArrayList<OpenCallData> OPEN_CALLS = new ArrayList<>();
-    private final ArrayList<Long> HIDDEN_OPEN_CALLS = new ArrayList<>(); // list of open-calls that have been hidden from search results
+    private final List<ClosedCallData> CLOSED_CALLS = Collections.synchronizedList(new ArrayList<>());
+    private final List<OpenCallData> OPEN_CALLS = Collections.synchronizedList(new ArrayList<>());
+    private final List<Long> HIDDEN_OPEN_CALLS = Collections.synchronizedList(new ArrayList<>()); // list of open-calls that have been hidden from search results
     private final MediaPlayer NOTIFICATION_SOUND_MEDIA_PLAYER = new MediaPlayer(new Media(Objects.requireNonNull(getClass().getResource("audio/new_open_call.wav")).toString()));
     private final MediaPlayer NOTIFICATION_REMINDER_SOUND_MEDIA_PLAYER = new MediaPlayer(new Media(Objects.requireNonNull(getClass().getResource("audio/notification_reminder.wav")).toString()));
     private Timer downloadOpenCallsTimer;
     private Timer downloadClosedCallsTimer;
+    private Thread downloadOpenCallsThread;
 
     @FXML
     private CheckBox muteAlertAudioCheckbox;
@@ -59,6 +69,10 @@ public class BPDMonitorController {
     }
 
 
+    public BPDMonitorController() {
+        instance = this;
+    }
+
     // called when window/program is opened
     public void onProgramInitialize() {
         // make timer that auto-downloads open calls every 2 minutes
@@ -82,10 +96,13 @@ public class BPDMonitorController {
                 Platform.runLater(() -> {
                     nextClosedCallCheckLabel.setText("Next Check at " + new Date(System.currentTimeMillis() + 3600000));
                     downloadClosedCalls();
+                    System.out.println("Test!");
                 });
             }
         };
-        downloadClosedCallsTimer.scheduleAtFixedRate(closedCallsTimerTask, 1000, 120000); // every two minutes
+        // TODO: replace "period" parameter with actual interval
+        downloadClosedCallsTimer.scheduleAtFixedRate(closedCallsTimerTask, 1000, 1200);
+
 
         // create event listeners
         SearchTerms.addListener(new SearchTermsEventListener() {
@@ -109,8 +126,8 @@ public class BPDMonitorController {
     // called when program is closed
     public void onProgramClose() {
         // cancel download timers
-        downloadOpenCallsTimer.cancel();
-        downloadClosedCallsTimer.cancel();
+        if (downloadOpenCallsTimer != null) downloadOpenCallsTimer.cancel();
+        if (downloadClosedCallsTimer != null) downloadClosedCallsTimer.cancel();
     }
 
     private void tryToAddSearchTerm(String searchTerm) {
@@ -125,7 +142,7 @@ public class BPDMonitorController {
         String[] searchTerms = SearchTerms.getSearchTerms();
 
         for (String searchTerm : searchTerms) {
-            FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("search-term.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(BPDMonitor.class.getResource("scenes/search-term.fxml"));
             BorderPane searchTermNode = fxmlLoader.load();
 
             Label searchTermLabel = (Label) searchTermNode.getCenter();
@@ -182,11 +199,6 @@ public class BPDMonitorController {
         saveSettings();
     }
 
-    private void saveClosedCalls() {
-        Thread saveThread = new Thread(new SaveClosedCallsRunnable(this));
-        saveThread.start();
-    }
-
     public void savedClosedCalls() {
 
     }
@@ -197,9 +209,10 @@ public class BPDMonitorController {
     }
 
     public void gotClosedCalls(String jsonString) {
+
         CLOSED_CALLS.clear();
 
-        @SuppressWarnings("unchecked") Map<String, ArrayList<Map<Object, Object>>> dataMap = GSON.fromJson(jsonString, Map.class);
+        Map<String, ArrayList<Map<Object, Object>>> dataMap = GSON.fromJson(jsonString, Map.class);
 
         CLOSED_CALLS.addAll(ClosedCallData.parseDataMap(dataMap));
 
@@ -219,49 +232,66 @@ public class BPDMonitorController {
             closedCallsTable.getItems().add(closedCallData);
         }
 
-        saveClosedCalls();
+
+        // save closed calls
+        if (SaveClosedCallsRunnable.isBusy()) { // (this is EXTREMELY unlikely to happen if saving does not happen very often)
+            System.out.println("ERROR > Could not save closed calls because closed calls are being written in another thread!");
+            return;
+        }
+
+        Thread saveFileThread = new Thread(
+                new SaveClosedCallsRunnable(this)
+        );
+        saveFileThread.start();
+
     }
 
     private void downloadOpenCalls() {
 
+        if (downloadOpenCallsThread != null && downloadOpenCallsThread.isAlive()) return;
+
         getOpenCallsButton.setDisable(true);
-        Thread downloadThread = new Thread(new OpenCallsDownloadRunnable(this));
-        downloadThread.start();
+        downloadOpenCallsThread = new Thread(new OpenCallsDownloadRunnable(this));
+        downloadOpenCallsThread.start();
+
     }
 
-    public void gotOpenCalls(ArrayList<OpenCallData> newOpenCallData, boolean shouldShowNotification, boolean shouldPlayNotificationSound, ArrayList<Long> hiddenCallsToFreeFromMemory) {
+    synchronized public void gotOpenCalls(ArrayList<OpenCallData> newOpenCallData, boolean shouldShowNotification, boolean shouldPlayNotificationSound, ArrayList<Long> hiddenCallsToFreeFromMemory) {
 
-        // remove call-id's of calls in the HIDDEN_OPEN_CALLS list that are no longer open
-        for (long callId : hiddenCallsToFreeFromMemory) {
-            HIDDEN_OPEN_CALLS.remove(callId);
-        }
+        Platform.runLater(() -> {
+            // remove call-id's of calls in the HIDDEN_OPEN_CALLS list that are no longer open
+            for (long callId : hiddenCallsToFreeFromMemory) {
+                HIDDEN_OPEN_CALLS.remove(callId);
+            }
 
-        // disable hide call button to prevent user from pressing it while no call is selected
-        hideSelectedCallButton.setDisable(true);
-
-
-        // clear and update open calls list
-        OPEN_CALLS.clear();
-        OPEN_CALLS.addAll(newOpenCallData);
-
-        // clear and update open calls table
-        updateOpenCallsTable();
-
-        // enable "Get Open Calls" button
-        getOpenCallsButton.setDisable(false);
+            // disable hide call button to prevent user from pressing it while no call is selected
+            hideSelectedCallButton.setDisable(true);
 
 
-        // display notification
-        if (shouldShowNotification) {
-            showNotification(Notifications.create().title("BPD Monitor").text("There are open-calls pending action!"));
-        }
+            // clear and update open calls list
+            OPEN_CALLS.clear();
+            OPEN_CALLS.addAll(newOpenCallData);
 
-        // play notification sound
-        if (shouldPlayNotificationSound) {
-            playNotificationSound();
-        } else if (shouldShowNotification) {
-            playNotificationReminderSound();
-        }
+            // clear and update open calls table
+            updateOpenCallsTable();
+
+            // enable "Get Open Calls" button
+            getOpenCallsButton.setDisable(false);
+
+
+            // display notification
+            if (shouldShowNotification) {
+                //showNotification(Notifications.create().title("BPD Monitor").text("There are open-calls pending action!"));
+            }
+
+            // TODO: make sure notification sounds work
+            // play notification sound
+            if (shouldPlayNotificationSound) {
+                //playNotificationSound();
+            } else if (shouldShowNotification) {
+                //playNotificationReminderSound();
+            }
+        });
     }
 
     public void updateOpenCallsTable() {
@@ -305,61 +335,13 @@ public class BPDMonitorController {
 
     private void loadSettings() {
 
-        File settingsFile = new File("settings.txt");
-        if (!settingsFile.exists()) {
-            System.out.println("Tried loading settings file while settings file does not exist.");
-            saveSettings();
-            return;
-        }
-
-
-        try {
-            FileInputStream inputStream = new FileInputStream(settingsFile);
-
-            int muteAlertSound = inputStream.read();
-            int muteReminderSound = inputStream.read();
-
-            if (muteAlertSound == 0) {
-                muteAlertAudioCheckbox.setSelected(false);
-            } else if (muteReminderSound != -1) {
-                muteAlertAudioCheckbox.setSelected(true);
-            }
-
-            if (muteReminderSound == 0) {
-                muteReminderAudioCheckbox.setSelected(false);
-            } else if (muteReminderSound != -1) {
-                muteReminderAudioCheckbox.setSelected(true);
-            }
-
-            inputStream.close();
-        } catch (FileNotFoundException e) {
-            // TODO: replace with better logging system
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO: replace with better logging system
-            e.printStackTrace();
-        }
+        Settings.load();
 
     }
 
     private void saveSettings() {
 
-        File outputFile = new File("settings.txt");
-
-        try {
-            FileOutputStream outputStream = new FileOutputStream(outputFile);
-
-            if (muteAlertAudioCheckbox.isSelected()) outputStream.write(1); else outputStream.write(0);
-            if (muteReminderAudioCheckbox.isSelected()) outputStream.write(1); else outputStream.write(0);
-
-            outputStream.close();
-        } catch (FileNotFoundException e) {
-            // TODO: replace with better logging system
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO: replace with better logging system
-            e.printStackTrace();
-        }
+        Settings.save();
 
     }
 
@@ -377,5 +359,17 @@ public class BPDMonitorController {
 
     public Gson getGson() {
         return GSON;
+    }
+
+    public static BPDMonitorController getInstance() {
+        return instance;
+    }
+
+    public CheckBox getMuteAlertAudioCheckbox() {
+        return muteAlertAudioCheckbox;
+    }
+
+    public CheckBox getMuteReminderAudioCheckBox() {
+        return muteReminderAudioCheckbox;
     }
 }

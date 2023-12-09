@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="650.0" stylesheets="@dark-stylesheet.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ingram.andrew.newbpdmonitor.BPDMonitorController">
+<TabPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="650.0" stylesheets="@../stylesheets/dark-stylesheet.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ingram.andrew.newbpdmonitor.BPDMonitorController">
    <tabs>
       <Tab text="Open Calls">
          <content>
@@ -26,7 +26,7 @@
                         <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" HBox.hgrow="ALWAYS">
                            <children>
                               <Label fx:id="nextOpenCallCheckLabel" maxHeight="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" text="_" HBox.hgrow="ALWAYS" />
-                              <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" prefWidth="98.0" stylesheets="@dark-stylesheet.css" text="Force Check" />
+                              <Button fx:id="getOpenCallsButton" alignment="CENTER" contentDisplay="CENTER" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenCallsButtonPressed" prefWidth="98.0" stylesheets="@../stylesheets/dark-stylesheet.css" text="Force Check" />
                               <Button fx:id="hideSelectedCallButton" alignment="CENTER" contentDisplay="CENTER" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onHideSelectedCallButtonPressed" text="Mark As 'Seen'" />
                            </children>
                         </HBox>

@@ -1,4 +1,4 @@
-package ingram.andrew.newbpdmonitor;
+package ingram.andrew.newbpdmonitor.data;
 
 import java.util.ArrayList;
 import java.util.Map;

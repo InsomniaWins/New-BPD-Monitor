@@ -1,4 +1,4 @@
-package ingram.andrew.newbpdmonitor;
+package ingram.andrew.newbpdmonitor.data;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -50,10 +50,14 @@ public class ClosedCallData implements CallData{
 
         for (Map<Object, Object> callDetailsMap : rows) {
 
+            // if data is non-breaking space, then data is invalid: continue
+            if (callDetailsMap.get("agency") == "&nbsp;") continue;
+
             String agency = (String) callDetailsMap.get("agency");
             String service = (String) callDetailsMap.get("service");
             String startTime = (String) callDetailsMap.get("starttime");
             String endTime = (String) callDetailsMap.get("closetime");
+
             long id = Long.parseLong((String) callDetailsMap.get("id"));
             String nature = (String) callDetailsMap.get("nature");
             String address = (String) callDetailsMap.get("address");

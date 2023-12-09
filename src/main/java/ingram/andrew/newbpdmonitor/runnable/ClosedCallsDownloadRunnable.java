@@ -1,4 +1,7 @@
-package ingram.andrew.newbpdmonitor;
+package ingram.andrew.newbpdmonitor.runnable;
+
+import ingram.andrew.newbpdmonitor.BPDMonitorController;
+import javafx.application.Platform;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -80,6 +83,6 @@ public class ClosedCallsDownloadRunnable implements Runnable {
             jsonString.append(line);
         }
 
-        PROGRAM_CONTROLLER.gotClosedCalls(jsonString.toString());
+        Platform.runLater(() -> PROGRAM_CONTROLLER.gotClosedCalls(jsonString.toString()));
     }
 }
